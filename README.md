@@ -15,7 +15,7 @@
 ## Features
 
 - Prevents combat logging: players who log out during combat remain in the world.
-- `/afk` command: lets players logout with the account still online, with optional time limits.
+- `/antiafk` command: lets players logout with the account still online, with optional time limits.
 - Configurable messages and timeouts.
 - Permission-based command and feature access.
 
@@ -45,16 +45,18 @@ All options are in `config/antilogout.toml`.
 - `combatTimeout`: How long a player is considered in combat (seconds).
 - `playerHurtOnly`: When `true`, only player or player-owned projectile damage triggers combat; when `false` (default), all damage to players triggers combat.
 - `combatDisconnectMessage`: Message when a player disconnects during combat.
+- `playerHurtOnly`: defaults to false, set to true if you want only players taking damage from other players to enable combat tagging. (dealing damage to mobs still enables combat tagging)
+
 
 ---
 
 ## Commands
 
-- `/afk`  
+- `/antiafk`  
   Set yourself AFK for the max time. (Permission level 0)
-- `/afk time <seconds>`  
+- `/antiafk time <seconds>`  
   Set yourself AFK for a specific time (`-1` for unlimited). (Permission level 0)
-- `/afk players <targets> [time <seconds>]`  
+- `/antiafk players <targets> [time <seconds>]`  
   Set other players AFK. (Admin only, permission level 4)
 - `/antilogout reload`  
   Reload the config file. (Admin only, permission level 4)
@@ -81,7 +83,7 @@ All options are in `config/antilogout.toml`.
 Players who log out during combat remain in the world for the configured timeout.
 
 **AFK farming:**  
-Use `/afk` to safely go AFK for farming or other purposes.
+Use `/antiafk` to safely go AFK for farming or other purposes.
 
 ---
 
