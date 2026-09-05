@@ -8,7 +8,7 @@
 
 ## Overview
 
-**AntiLogout** is a server-side mod that prevents players from escaping combat by logging out. When a player logs out during combat, their "body" remains online for a configurable amount of time, making combat logging impossible. The mod also provides a flexible `/afk` command to safely go AFK for farming or other purposes.
+**AntiLogout** is a server-side mod that prevents players from escaping combat by logging out. When a player logs out during combat, their "body" remains online for a configurable amount of time, making combat logging impossible. The mod also provides a flexible `/antiafk` command to safely go AFK for farming or other purposes.
 
 ---
 
