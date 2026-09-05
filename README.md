@@ -2,7 +2,7 @@
 
 **Originally by samo_lego, forked by pafer29555, then forked and maintained by hunkulous**
 
-*If samo_lego does not want this fork to be public, I (pafer29555) will take it down upon request.*
+*If samo_lego does not want this fork to be public, I (hunkulous) will take it down upon request.*
 
 ---
 
