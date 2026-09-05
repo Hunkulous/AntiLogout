@@ -41,18 +41,16 @@ public class EventHandler {
      */
     public static InteractionResult onAttack(Player attacker, Level _level, InteractionHand _interactionHand,
             Entity target, @Nullable EntityHitResult _entityHitResult) {
-        if (target instanceof Player) {
+        if (target instanceof LivingEntity) {
             long allowedDc = System.currentTimeMillis() + Math.round(AntiLogout.config.combatLog.combatTimeout * 1000L);
 
-            // Mark target
-            if (target instanceof LogoutRules logoutTarget
-                    && true) {
+            // Mark living targets that participate in AntiLogout combat tracking.
+            if (target instanceof LogoutRules logoutTarget) {
                 logoutTarget.al_setInCombatUntil(allowedDc);
             }
 
-            // Mark attacker
-            if (attacker instanceof LogoutRules logoutAttacker
-                        && true) {
+            // Mark the attacking player for any living-entity combat.
+            if (attacker instanceof LogoutRules logoutAttacker) {
                 logoutAttacker.al_setInCombatUntil(allowedDc);
             }
         }

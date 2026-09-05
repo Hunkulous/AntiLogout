@@ -57,7 +57,7 @@ public class ConfigManager {
         // AFK
         configData.setComment("afk.afkMessage", "Message shown when a player is AFK");
         configData.set("afk.afkMessage", config.afk.afkMessage);
-        configData.setComment("afk.permissionLevel", "Permission level required for /afk");
+        configData.setComment("afk.permissionLevel", "Permission level required for /antiafk");
         configData.set("afk.permissionLevel", config.afk.permissionLevel);
         configData.setComment("afk.maxAfkTime", "Max AFK time in seconds");
         configData.set("afk.maxAfkTime", config.afk.maxAfkTime);
@@ -74,7 +74,7 @@ public class ConfigManager {
         configData.set("combatLog.combatEndMessage", config.combatLog.combatEndMessage);
         configData.setComment("combatLog.combatTimeout", "Combat timeout in seconds");
         configData.set("combatLog.combatTimeout", config.combatLog.combatTimeout);
-        configData.setComment("combatLog.playerHurtOnly", "Only player damage triggers");
+        configData.setComment("combatLog.playerHurtOnly", "Only player damage triggers when true; all damage triggers when false");
         configData.set("combatLog.playerHurtOnly", config.combatLog.playerHurtOnly);
         configData.setComment("combatLog.bypassPermissionLevel", "Permission to bypass combat log");
         configData.set("combatLog.bypassPermissionLevel", config.combatLog.bypassPermissionLevel);
@@ -103,7 +103,7 @@ public class ConfigManager {
             public String combatEnterMessage = "You are in combat!";
             public String combatEndMessage = "You are no longer in combat!";
             public int combatTimeout = 30;
-            public boolean playerHurtOnly = true;
+            public boolean playerHurtOnly = false;
             public int bypassPermissionLevel = 4;
             public String combatDisconnectMessage = "disconnected while in combat!";
         }

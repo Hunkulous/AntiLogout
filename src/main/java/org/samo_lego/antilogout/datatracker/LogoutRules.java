@@ -60,12 +60,19 @@ public interface LogoutRules {
         this.al_setAllowDisconnectAt(systemTime);
 
         if (AntiLogout.config.combatLog.notifyOnCombat) {
-            // Notify player about entering combat
             long duration = (long) Math.ceil((systemTime - System.currentTimeMillis()) / 1000.0D);
-            ((ServerPlayer) this).sendSystemMessage(this.al$getStartCombatMessage(duration));
 
-            this.al$delay(systemTime,
-                    () -> ((ServerPlayer) this).sendSystemMessage(this.al$getEndCombatMessage(duration)));
+            if (!AntiLogout.config.combatLog.combatEnterMessage.isBlank()) {
+                ((ServerPlayer) this).sendSystemMessage(this.al$getStartCombatMessage(duration));
+            }
+
+            if (!AntiLogout.config.combatLog.combatEndMessage.isBlank()) {
+                this.al$delay(systemTime, () -> {
+                    if (!AntiLogout.config.combatLog.combatEndMessage.isBlank()) {
+                        ((ServerPlayer) this).sendSystemMessage(this.al$getEndCombatMessage(duration));
+                    }
+                });
+            }
         }
     }
 

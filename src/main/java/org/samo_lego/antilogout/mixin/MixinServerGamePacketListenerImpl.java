@@ -30,7 +30,7 @@ public abstract class MixinServerGamePacketListenerImpl extends ServerCommonPack
     public abstract ServerPlayer getPlayer();
 
     /**
-     * Injects into the disconnect method to ensure /afk disconnects do not trigger combat log messages or dummies.
+    * Injects into the disconnect method to ensure /antiafk disconnects do not trigger combat log messages or dummies.
      * Cancels disconnect if AFK, otherwise handles as normal.
      * @param disconnectionInfo the disconnection info
      * @param ci callback info
