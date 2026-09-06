@@ -6,6 +6,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.entity.monster.Enemy;
+import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.network.DisconnectionDetails;
 import net.minecraft.network.protocol.game.ClientboundPlayerCombatKillPacket;
 import net.minecraft.server.MinecraftServer;
@@ -19,6 +21,8 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import org.samo_lego.antilogout.AntiLogout;
 import org.samo_lego.antilogout.datatracker.LogoutRules;
+import org.samo_lego.antilogout.chunk.CombatDummyChunkLoading;
+import org.samo_lego.antilogout.chunk.CombatDummyMobPersistence;
 
 /**
  * Handles all AntiLogout-related events for combat, AFK, and player state.
@@ -27,6 +31,10 @@ import org.samo_lego.antilogout.datatracker.LogoutRules;
  * because we require more control and configuration than vanilla provides.
  */
 public class EventHandler {
+
+    private static boolean isCombatEntity(Entity entity) {
+        return entity instanceof Player || entity instanceof Enemy || entity instanceof NeutralMob;
+    }
 
     /**
      * Marks both the attacker and the target as "in combat state" if they are players.
@@ -41,11 +49,11 @@ public class EventHandler {
      */
     public static InteractionResult onAttack(Player attacker, Level _level, InteractionHand _interactionHand,
             Entity target, @Nullable EntityHitResult _entityHitResult) {
-        if (target instanceof LivingEntity) {
+        if (isCombatEntity(target)) {
             long allowedDc = System.currentTimeMillis() + Math.round(AntiLogout.config.combatLog.combatTimeout * 1000L);
 
             // Mark living targets that participate in AntiLogout combat tracking.
-            if (target instanceof LogoutRules logoutTarget) {
+            if (target instanceof Player && target instanceof LogoutRules logoutTarget) {
                 logoutTarget.al_setInCombatUntil(allowedDc);
             }
 
@@ -67,7 +75,11 @@ public class EventHandler {
     public static void onDeath(LivingEntity deadEntity, DamageSource _damageSource) {
         if (deadEntity instanceof LogoutRules player && player.al_isFake()) {
             // Remove player from online players
-            ((ServerPlayer) player).connection.disconnect(new DisconnectionDetails(Component.empty()));
+            ServerPlayer serverPlayer = (ServerPlayer) player;
+            CombatDummyMobPersistence.release(serverPlayer, "death");
+            CombatDummyChunkLoading.release(serverPlayer, "death");
+            LogoutRules.DISCONNECTED_PLAYERS.remove(serverPlayer);
+            serverPlayer.connection.disconnect(new DisconnectionDetails(Component.empty()));
         }
     }
 
@@ -82,13 +94,14 @@ public class EventHandler {
         long allowedDc = System.currentTimeMillis() + Math.round(AntiLogout.config.combatLog.combatTimeout * 1000L);
         if (target != null) {
             boolean trigger;
+            Entity damageEntity = damageSource.getEntity();
             if (AntiLogout.config.combatLog.playerHurtOnly) {
                 // Only player or player projectile
-                trigger = (damageSource.getEntity() instanceof Player) ||
-                    (damageSource.getEntity() instanceof Projectile p && p.getOwner() instanceof Player);
+                trigger = damageEntity instanceof Player ||
+                        (damageEntity instanceof Projectile p && p.getOwner() instanceof Player);
             } else {
-                // Any damage triggers
-                trigger = true;
+                trigger = isCombatEntity(damageEntity) ||
+                        (damageEntity instanceof Projectile p && isCombatEntity(p.getOwner()));
             }
             if (trigger) {
                 ((LogoutRules) target).al_setInCombatUntil(allowedDc);

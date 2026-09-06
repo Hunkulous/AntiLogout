@@ -6,6 +6,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.network.chat.Component;
 import org.samo_lego.antilogout.AntiLogout;
+import org.samo_lego.antilogout.chunk.CombatDummyChunkLoading;
+import org.samo_lego.antilogout.chunk.CombatDummyMobPersistence;
 import org.samo_lego.antilogout.datatracker.LogoutRules;
 import org.samo_lego.antilogout.event.EventHandler;
 import org.spongepowered.asm.mixin.Mixin;
@@ -94,7 +96,14 @@ public abstract class MixinServerPlayerLogoutRules implements LogoutRules {
         this.disconnected = true;
         // If this is an AFK disconnect, do not create a dummy or log combat/AFK disconnect
         if (!this.al_allowDisconnect() && !this.al_isAfkDisconnect()) {
-            DISCONNECTED_PLAYERS.add((ServerPlayer) (Object) this);
+            ServerPlayer player = (ServerPlayer) (Object) this;
+            DISCONNECTED_PLAYERS.add(player);
+            if (AntiLogout.SERVER != null) {
+                AntiLogout.SERVER.execute(() -> {
+                    CombatDummyChunkLoading.retain(player);
+                    CombatDummyMobPersistence.retain(player);
+                });
+            }
             if (AntiLogout.config.general.debug) AntiLogout.LOGGER.info("[DISCONNECT] {} disconnected while not allowed (combat/AFK).", ((ServerPlayer)(Object)this).getName().getString());
         }
         // Always reset AFK flag after any disconnect
@@ -132,6 +141,10 @@ public abstract class MixinServerPlayerLogoutRules implements LogoutRules {
     private void playerTick(CallbackInfo ci) {
         if (this.al_isFake()) {
             if (this.al_allowDisconnect() && !this.executedDisconnect) {
+                ServerPlayer player = (ServerPlayer) (Object) this;
+                CombatDummyMobPersistence.release(player, "timeout");
+                CombatDummyChunkLoading.release(player, "timeout");
+                DISCONNECTED_PLAYERS.remove(player);
                 this.connection.disconnect(Component.empty());
                 this.executedDisconnect = true; // Prevent disconnecting twice
             }
@@ -140,15 +153,6 @@ public abstract class MixinServerPlayerLogoutRules implements LogoutRules {
             this.delayedTask.run();
             this.delayedTask = null;
         }
-    }
-
-    /**
-     * Removes player from DISCONNECTED_PLAYERS on disconnect.
-     * @param ci callback info
-     */
-    @Inject(method = "disconnect()V", at = @At("TAIL"))
-    private void al_onDisconnect(CallbackInfo ci) {
-        DISCONNECTED_PLAYERS.remove((ServerPlayer) (Object) this);
     }
 
     /**

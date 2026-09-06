@@ -3,6 +3,7 @@ package org.samo_lego.antilogout.mixin;
 import net.minecraft.server.network.ServerConnectionListener;
 import net.minecraft.server.level.ServerPlayer;
 import org.samo_lego.antilogout.datatracker.LogoutRules;
+import org.samo_lego.antilogout.chunk.CombatDummyMobPersistence;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -21,5 +22,6 @@ public class MixinServerConnectionListener {
     private void onTickConnections(CallbackInfo ci) {
         // Tick all disconnected/dummy players as well
         LogoutRules.DISCONNECTED_PLAYERS.forEach(ServerPlayer::tick);
+        CombatDummyMobPersistence.cleanupStale(LogoutRules.DISCONNECTED_PLAYERS);
     }
 }

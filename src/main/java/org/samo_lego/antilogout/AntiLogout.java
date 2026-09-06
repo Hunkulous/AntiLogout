@@ -10,6 +10,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.network.chat.Component;
 import org.samo_lego.antilogout.command.AfkCommand;
 import org.samo_lego.antilogout.command.AntiLogoutCommand;
+import org.samo_lego.antilogout.chunk.CombatDummyChunkLoading;
+import org.samo_lego.antilogout.chunk.CombatDummyMobPersistence;
 import org.samo_lego.antilogout.config.ConfigManager;
 import org.samo_lego.antilogout.event.EventHandler;
 import org.slf4j.Logger;
@@ -47,6 +49,8 @@ public class AntiLogout implements DedicatedServerModInitializer {
         // Register server lifecycle events to track the server instance and cleanup on stop
         ServerLifecycleEvents.SERVER_STARTED.register(server -> SERVER = server);
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+            CombatDummyMobPersistence.clear();
+            CombatDummyChunkLoading.clear();
             SERVER = null;
             // Clear fake/disconnected players to prevent ghosts after restart
             org.samo_lego.antilogout.datatracker.LogoutRules.DISCONNECTED_PLAYERS.clear();

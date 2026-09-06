@@ -6,6 +6,8 @@ import net.minecraft.server.players.PlayerList;
 import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.level.ServerPlayer;
 import org.samo_lego.antilogout.datatracker.LogoutRules;
+import org.samo_lego.antilogout.chunk.CombatDummyChunkLoading;
+import org.samo_lego.antilogout.chunk.CombatDummyMobPersistence;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -15,6 +17,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Mixin for PlayerManager to handle duplicate player connections.
@@ -42,13 +45,20 @@ public abstract class MixinPlayerList {
         private void onPlayerConnect(Connection clientConnection, ServerPlayer serverPlayerEntity,
             CommonListenerCookie connectedClientData,
             CallbackInfo ci) {
+        UUID playerId = serverPlayerEntity.getUUID();
+        CombatDummyMobPersistence.release(playerId, "reconnect");
+        CombatDummyChunkLoading.release(playerId, serverPlayerEntity.getName().getString(), "reconnect");
+        LogoutRules.DISCONNECTED_PLAYERS.removeIf(player -> player.getUUID().equals(playerId));
+
         var matchingPlayers = getPlayers().stream()
-            .filter(player -> player.getUUID().equals(serverPlayerEntity.getUUID()))
+            .filter(player -> player.getUUID().equals(playerId))
                 .toList();
 
         for (ServerPlayer player : matchingPlayers) {
             // Allow disconnect for the old player
             ((LogoutRules) player).al_setAllowDisconnect(true);
+            CombatDummyMobPersistence.release(player, "reconnect");
+            CombatDummyChunkLoading.release(player, "reconnect");
 
             // Remove the old player so the login process can continue
             this.server.getPlayerList().remove(player);
