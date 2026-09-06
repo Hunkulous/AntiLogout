@@ -6,7 +6,8 @@
 	"description": "No more combat-logouts.",
 	"authors": [
 		"pafer29555",
-		"samo_lego"
+		"samo_lego",
+		"hunkulous"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
@@ -24,9 +25,9 @@
 		"antilogout.mixins.json"
 	],
 	"depends": {
-		"fabricloader": ">=0.14.12",
-		"minecraft": ">=1.19.3",
-		"java": ">=17",
+		"fabricloader": ">=0.19.3",
+		"minecraft": ">=26.2",
+		"java": ">=25",
 		"fabric-api": "*"
 	}
 }
