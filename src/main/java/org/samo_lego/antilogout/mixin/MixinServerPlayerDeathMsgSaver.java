@@ -22,9 +22,6 @@ public abstract class MixinServerPlayerDeathMsgSaver {
     @Unique
     private final ServerPlayer self = (ServerPlayer) (Object) this;
 
-    @Unique
-    public abstract net.minecraft.world.level.Level antilogout_level();
-
     /**
      * Injects into the player death handler to save death messages for fake/disconnected players.
      * Stores the message in SKIPPED_DEATH_MESSAGES for later display.
@@ -34,7 +31,7 @@ public abstract class MixinServerPlayerDeathMsgSaver {
     @Inject(method = "die(Lnet/minecraft/world/damagesource/DamageSource;)V", at = @At("RETURN"))
     private void onDeath(DamageSource damageSource, CallbackInfo ci) {
         if (((LogoutRules) this).al_isFake()) {
-            ServerLevel serverLevel = (ServerLevel) this.antilogout_level();
+            ServerLevel serverLevel = self.level();
             boolean seeDeathMsgs = true;
 
             Component deathMsg;
