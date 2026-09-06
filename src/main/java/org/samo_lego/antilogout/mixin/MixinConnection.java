@@ -7,7 +7,6 @@ import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.samo_lego.antilogout.datatracker.LogoutRules;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -35,11 +34,11 @@ public abstract class MixinConnection {
                 if (!rules.al_isAfkDisconnect()) {
                     var player = listener.getPlayer();
                     var server = org.samo_lego.antilogout.AntiLogout.SERVER;
-                    if (server != null) {
-                        server.getPlayerList().broadcastSystemMessage(
-                                net.minecraft.network.chat.Component
-                                    .literal(player.getName().getString() + " " + org.samo_lego.antilogout.AntiLogout.config.combatLog.combatDisconnectMessage),
-                                false);
+                    var message = org.samo_lego.antilogout.AntiLogout.config.combatLog.combatDisconnectMessage;
+                    if (server != null && !message.isBlank()) {
+                        String sayMessage = player.getName().getString() + " " + message;
+                        server.execute(() -> server.getCommands().performPrefixedCommand(
+                            server.createCommandSourceStack(), "say " + sayMessage));
                     }
                 }
                 this.channel.close();
