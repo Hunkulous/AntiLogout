@@ -32,40 +32,40 @@ public class AfkCommand {
     }
 
     /**
-     * Registers the /afk command and all its subcommands.
+    * Registers the /antiafk command and all its subcommands.
      *
      * Usage:
-     *   /afk - Set yourself AFK for max time.
-     *   /afk time <seconds> - Set yourself AFK for a specific time.
-     *   /afk players <targets> [time <seconds>] - Set other players AFK for max or specific time.
-     *   /afk help - Show usage info.
+    *   /antiafk - Set yourself AFK for max time.
+    *   /antiafk time <seconds> - Set yourself AFK for a specific time.
+    *   /antiafk players <targets> [time <seconds>] - Set other players AFK for max or specific time.
+    *   /antiafk help - Show usage info.
      *
      * @param dispatcher the command dispatcher
      */
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        dispatcher.register(literal("afk")
-            .requires(src -> hasPermission(src, "antilogout.command.afk", config.afk.permissionLevel))
+        dispatcher.register(literal("antiafk")
+            .requires(src -> hasPermission(src, "antilogout.command.antiafk", config.afk.permissionLevel))
             .then(literal("help")
                 .executes(ctx -> {
                     ctx.getSource().sendSuccess(() -> Component.literal("""
-                            /afk - Set yourself AFK for max time.
-                            /afk time <seconds> - Set yourself AFK for a specific time.
-                            /afk players <targets> [time <seconds>] - Set other players AFK for max or specific time."""), false);
+                            /antiafk - Set yourself AFK for max time.
+                            /antiafk time <seconds> - Set yourself AFK for a specific time.
+                            /antiafk players <targets> [time <seconds>] - Set other players AFK for max or specific time."""), false);
                     return 1;
                 })
             )
             .then(literal("players")
-                .requires(src -> hasPermission(src, "antilogout.command.afk.players", 4))
+                .requires(src -> hasPermission(src, "antilogout.command.antiafk.players", 4))
                 .then(Commands.argument("targets", EntityArgument.players())
                     .then(literal("time")
-                        .requires(src -> hasPermission(src, "antilogout.command.afk.players.time", config.afk.permissionLevel))
+                        .requires(src -> hasPermission(src, "antilogout.command.antiafk.players.time", config.afk.permissionLevel))
                         .then(Commands.argument("time", DoubleArgumentType.doubleArg(-1, config.afk.maxAfkTime == -1 ? Double.MAX_VALUE : config.afk.maxAfkTime))
                             .executes(ctx -> afkPlayers(ctx.getSource(), EntityArgument.getPlayers(ctx, "targets"), DoubleArgumentType.getDouble(ctx, "time")))))
                     .executes(ctx -> afkPlayers(ctx.getSource(), EntityArgument.getPlayers(ctx, "targets"), config.afk.maxAfkTime))
                 )
             )
             .then(literal("time")
-                .requires(src -> hasPermission(src, "antilogout.command.afk.time", config.afk.permissionLevel))
+                .requires(src -> hasPermission(src, "antilogout.command.antiafk.time", config.afk.permissionLevel))
                 .then(Commands.argument("time", DoubleArgumentType.doubleArg(-1, config.afk.maxAfkTime == -1 ? Double.MAX_VALUE : config.afk.maxAfkTime))
                         .executes(ctx -> afkPlayers(ctx.getSource(), Collections.singletonList(ctx.getSource().getPlayerOrException()), DoubleArgumentType.getDouble(ctx, "time")))))
                     .executes(ctx -> afkPlayers(ctx.getSource(), Collections.singleton(ctx.getSource().getPlayerOrException()), config.afk.maxAfkTime))
@@ -102,7 +102,7 @@ public class AfkCommand {
                 long now = System.currentTimeMillis();
                 long last = afkCooldowns.getOrDefault(player.getUUID(), 0L);
                 if (now - last < AFK_COOLDOWN_MS) {
-                    source.sendFailure(Component.literal("You must wait before using /afk again."));
+                    source.sendFailure(Component.literal("You must wait before using /antiafk again."));
                     if (config.general.debug) AntiLogout.LOGGER.info("[AFK] {} tried to AFK but is on cooldown.", player.getName().getString());
                     continue;
                 }

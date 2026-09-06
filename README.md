@@ -41,7 +41,9 @@ All options are in `config/antilogout.toml`.
 - `afkBroadcastMessage`: Broadcast when a player goes AFK (`{player}` = name).
 - `combatEnterMessage`: Message when entering combat.
 - `combatEndMessage`: Message when leaving combat.
+- Set either combat message to an empty or whitespace-only string to suppress that notification without disabling combat tracking.
 - `combatTimeout`: How long a player is considered in combat (seconds).
+- `playerHurtOnly`: When `true`, only player or player-owned projectile damage triggers combat; when `false` (default), all damage to players triggers combat.
 - `combatDisconnectMessage`: Message when a player disconnects during combat.
 
 ---
