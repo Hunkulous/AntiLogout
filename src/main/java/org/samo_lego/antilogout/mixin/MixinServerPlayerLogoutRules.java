@@ -33,6 +33,8 @@ public abstract class MixinServerPlayerLogoutRules implements LogoutRules {
     @Unique
     private long allowDisconnectTime = 0;
     @Unique
+    private long antilogoutDummyExpireAt = 0;
+    @Unique
     private boolean executedDisconnect = false;
     @Unique
     private Runnable delayedTask;
@@ -97,6 +99,9 @@ public abstract class MixinServerPlayerLogoutRules implements LogoutRules {
         // If this is an AFK disconnect, do not create a dummy or log combat/AFK disconnect
         if (!this.al_allowDisconnect() && !this.al_isAfkDisconnect()) {
             ServerPlayer player = (ServerPlayer) (Object) this;
+            long dummyExpireAt = System.currentTimeMillis()
+                    + Math.multiplyExact(AntiLogout.config.combatLog.logoutTimeout, 1000L);
+            this.al_setDummyExpireAt(dummyExpireAt);
             DISCONNECTED_PLAYERS.add(player);
             if (AntiLogout.SERVER != null) {
                 AntiLogout.SERVER.execute(() -> {
@@ -104,12 +109,26 @@ public abstract class MixinServerPlayerLogoutRules implements LogoutRules {
                     CombatDummyMobPersistence.retain(player);
                 });
             }
-            if (AntiLogout.config.general.debug) AntiLogout.LOGGER.info("[DISCONNECT] {} disconnected while not allowed (combat/AFK).", ((ServerPlayer)(Object)this).getName().getString());
+            if (AntiLogout.config.general.debug) {
+                AntiLogout.LOGGER.info("[DISCONNECT] {} disconnected while not allowed (combat/AFK). combatTimeout={}s logoutTimeout={}s dummyExpireAt={}",
+                        player.getName().getString(), AntiLogout.config.combatLog.combatTimeout,
+                        AntiLogout.config.combatLog.logoutTimeout, dummyExpireAt);
+            }
         }
         // Always reset AFK flag after any disconnect
         if (this.al_isAfkDisconnect()) {
             this.al_setAfkDisconnect(false);
         }
+    }
+
+    @Override
+    public void al_setDummyExpireAt(long systemTime) {
+        this.antilogoutDummyExpireAt = systemTime;
+    }
+
+    @Override
+    public long al_getDummyExpireAt() {
+        return this.antilogoutDummyExpireAt;
     }
 
     /**
@@ -140,8 +159,13 @@ public abstract class MixinServerPlayerLogoutRules implements LogoutRules {
     @Inject(method = "tick", at = @At("HEAD"), cancellable = true)
     private void playerTick(CallbackInfo ci) {
         if (this.al_isFake()) {
-            if (this.al_allowDisconnect() && !this.executedDisconnect) {
+            if (this.al_getDummyExpireAt() > 0
+                    && this.al_getDummyExpireAt() <= System.currentTimeMillis()
+                    && !this.executedDisconnect) {
                 ServerPlayer player = (ServerPlayer) (Object) this;
+                if (AntiLogout.config.general.debug) {
+                    AntiLogout.LOGGER.info("[DUMMY] {} logout timeout expired; retiring dummy", player.getName().getString());
+                }
                 CombatDummyMobPersistence.release(player, "timeout");
                 CombatDummyChunkLoading.release(player, "timeout");
                 DISCONNECTED_PLAYERS.remove(player);

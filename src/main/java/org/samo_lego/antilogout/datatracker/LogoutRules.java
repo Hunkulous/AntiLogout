@@ -51,6 +51,10 @@ public interface LogoutRules {
      */
     void al_setAllowDisconnect(boolean allow);
 
+    void al_setDummyExpireAt(long systemTime);
+
+    long al_getDummyExpireAt();
+
     /**
      * Marks the player as in combat state until the specified time.
      *

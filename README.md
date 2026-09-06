@@ -43,6 +43,7 @@ All options are in `config/antilogout.toml`.
 - `combatEndMessage`: Message when leaving combat.
 - Set either combat message to an empty or whitespace-only string to suppress that notification without disabling combat tracking.
 - `combatTimeout`: How long a player is considered in combat (seconds).
+- `logoutTimeout`: How long a disconnected combat dummy remains active (seconds).
 - `playerHurtOnly`: When `true`, only player or player-owned projectile damage triggers combat; when `false` (default), all damage to players triggers combat.
 - `combatDisconnectMessage`: Message when a player disconnects during combat.
 - `playerHurtOnly`: defaults to false, set to true if you want only players taking damage from other players to enable combat tagging. (dealing damage to mobs still enables combat tagging)

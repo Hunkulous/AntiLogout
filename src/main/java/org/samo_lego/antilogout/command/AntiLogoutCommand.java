@@ -15,6 +15,7 @@ public class AntiLogoutCommand {
     private static final String[] OPTIONS = {
             "disableAllLogouts",
             "combatTimeout",
+            "logoutTimeout",
             "notifyOnCombat",
             "combatEnterMessage",
             "combatEndMessage",
@@ -38,6 +39,7 @@ public class AntiLogoutCommand {
         return switch (option) {
             case "disableAllLogouts" -> config.general.disableAllLogouts;
             case "combatTimeout" -> config.combatLog.combatTimeout;
+            case "logoutTimeout" -> config.combatLog.logoutTimeout;
             case "notifyOnCombat" -> config.combatLog.notifyOnCombat;
             case "combatEnterMessage" -> config.combatLog.combatEnterMessage;
             case "combatEndMessage" -> config.combatLog.combatEndMessage;
@@ -61,6 +63,14 @@ public class AntiLogoutCommand {
                 }
                 case "combatTimeout" -> {
                     config.combatLog.combatTimeout = Integer.parseInt(value);
+                    yield true;
+                }
+                case "logoutTimeout" -> {
+                    long logoutTimeout = Long.parseLong(value);
+                    if (logoutTimeout < 0) {
+                        throw new IllegalArgumentException("logoutTimeout must be non-negative");
+                    }
+                    config.combatLog.logoutTimeout = logoutTimeout;
                     yield true;
                 }
                 case "notifyOnCombat" -> {
@@ -113,6 +123,7 @@ public class AntiLogoutCommand {
         return "Current AntiLogout Config:\n" +
             "  disableAllLogouts: " + config.general.disableAllLogouts + "\n" +
             "  combatTimeout: " + config.combatLog.combatTimeout + "\n" +
+            "  logoutTimeout: " + config.combatLog.logoutTimeout + "\n" +
             "  notifyOnCombat: " + config.combatLog.notifyOnCombat + "\n" +
             "  combatEnterMessage: " + config.combatLog.combatEnterMessage + "\n" +
             "  combatEndMessage: " + config.combatLog.combatEndMessage + "\n" +
@@ -148,7 +159,7 @@ public class AntiLogoutCommand {
                                         /antilogout status - Shows current config values.
                                         /antilogout get <option> - Gets a config value.
                                         /antilogout set <option> <value> - Sets a config value.
-                                        Options: disableAllLogouts, combatTimeout, notifyOnCombat, combatEnterMessage, combatEndMessage, playerHurtOnly, bypassPermissionLevel, afkMessage, permissionLevel, maxAfkTime"""
+                                        Options: disableAllLogouts, combatTimeout, logoutTimeout, notifyOnCombat, combatEnterMessage, combatEndMessage, playerHurtOnly, bypassPermissionLevel, afkMessage, permissionLevel, maxAfkTime"""
                         ), false);
                         return 1;
                     })

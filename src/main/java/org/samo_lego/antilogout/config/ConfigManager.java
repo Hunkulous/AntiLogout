@@ -4,6 +4,7 @@ import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import org.samo_lego.antilogout.AntiLogout;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -37,6 +38,9 @@ public class ConfigManager {
         config.combatLog.combatEnterMessage = configData.getOrElse("combatLog.combatEnterMessage", config.combatLog.combatEnterMessage);
         config.combatLog.combatEndMessage = configData.getOrElse("combatLog.combatEndMessage", config.combatLog.combatEndMessage);
         config.combatLog.combatTimeout = configData.getOrElse("combatLog.combatTimeout", config.combatLog.combatTimeout);
+        config.combatLog.logoutTimeout = readNonNegativeLong(
+            configData.getOrElse("combatLog.logoutTimeout", config.combatLog.logoutTimeout),
+            "combatLog.logoutTimeout");
         config.combatLog.playerHurtOnly = configData.getOrElse("combatLog.playerHurtOnly", config.combatLog.playerHurtOnly);
         config.combatLog.bypassPermissionLevel = configData.getOrElse("combatLog.bypassPermissionLevel", config.combatLog.bypassPermissionLevel);
         config.combatLog.combatDisconnectMessage = configData.getOrElse("combatLog.combatDisconnectMessage", config.combatLog.combatDisconnectMessage);
@@ -74,6 +78,8 @@ public class ConfigManager {
         configData.set("combatLog.combatEndMessage", config.combatLog.combatEndMessage);
         configData.setComment("combatLog.combatTimeout", "Combat timeout in seconds");
         configData.set("combatLog.combatTimeout", config.combatLog.combatTimeout);
+        configData.setComment("combatLog.logoutTimeout", "Combat dummy lifetime in seconds");
+        configData.set("combatLog.logoutTimeout", config.combatLog.logoutTimeout);
         configData.setComment("combatLog.playerHurtOnly", "Only player damage triggers when true; all damage triggers when false");
         configData.set("combatLog.playerHurtOnly", config.combatLog.playerHurtOnly);
         configData.setComment("combatLog.bypassPermissionLevel", "Permission to bypass combat log");
@@ -81,6 +87,25 @@ public class ConfigManager {
         configData.setComment("combatLog.combatDisconnectMessage", "Message for combat log disconnect");
         configData.set("combatLog.combatDisconnectMessage", config.combatLog.combatDisconnectMessage);
         configData.save();
+    }
+
+    private static long readNonNegativeLong(Object value, String key) {
+        if (!(value instanceof Number number)) {
+            throw new IllegalArgumentException(key + " must be a non-negative whole number");
+        }
+
+        BigDecimal decimal;
+        try {
+            decimal = new BigDecimal(number.toString());
+        } catch (NumberFormatException exception) {
+            throw new IllegalArgumentException(key + " must be a non-negative whole number", exception);
+        }
+
+        if (decimal.signum() < 0 || decimal.stripTrailingZeros().scale() > 0
+                || decimal.compareTo(BigDecimal.valueOf(Long.MAX_VALUE)) > 0) {
+            throw new IllegalArgumentException(key + " must be a non-negative whole number within long range");
+        }
+        return decimal.longValueExact();
     }
 
     public static class Config {
@@ -103,6 +128,7 @@ public class ConfigManager {
             public String combatEnterMessage = "You are in combat!";
             public String combatEndMessage = "You are no longer in combat!";
             public int combatTimeout = 30;
+            public long logoutTimeout = 30L;
             public boolean playerHurtOnly = false;
             public int bypassPermissionLevel = 4;
             public String combatDisconnectMessage = "disconnected while in combat!";
