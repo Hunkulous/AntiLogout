@@ -23,7 +23,12 @@ public class ConfigManager {
 
     public static void load() {
         CommentedFileConfig configData = CommentedFileConfig.builder(CONFIG_PATH).autosave().build();
-        configData.load();
+        try {
+            configData.load();
+        } catch (Exception e) {
+            // Malformed/corrupt config: log and fall back to defaults instead of silently wiping the file.
+            AntiLogout.LOGGER.warn("Failed to parse {}, using defaults for unreadable values: {}", CONFIG_PATH, e.getMessage());
+        }
         // General
         config.general.disableAllLogouts = configData.getOrElse("general.disableAllLogouts", config.general.disableAllLogouts);
         config.general.debug = configData.getOrElse("general.debug", config.general.debug);
