@@ -56,28 +56,43 @@ public interface LogoutRules {
     long al_getDummyExpireAt();
 
     /**
+     * Checks whether the player is currently flagged as being in combat.
+     * @return true if in combat, false otherwise
+     */
+    boolean al_isInCombat();
+
+    /**
+     * Sets whether the player is currently flagged as being in combat.
+     * @param inCombat true if in combat, false otherwise
+     */
+    void al_setInCombat(boolean inCombat);
+
+    /**
      * Marks the player as in combat state until the specified time.
+     * Every hit extends the combat timer, but the "enter combat" message only fires
+     * on the transition into combat to avoid spamming chat on repeated hits.
      *
      * @param systemTime time in milliseconds at which the player leaves state.
      */
     default void al_setInCombatUntil(long systemTime) {
         this.al_setAllowDisconnectAt(systemTime);
 
-        if (AntiLogout.config.combatLog.notifyOnCombat) {
-            long duration = (long) Math.ceil((systemTime - System.currentTimeMillis()) / 1000.0D);
+        long duration = (long) Math.ceil((systemTime - System.currentTimeMillis()) / 1000.0D);
 
-            if (!AntiLogout.config.combatLog.combatEnterMessage.isBlank()) {
-                ((ServerPlayer) this).sendSystemMessage(this.al$getStartCombatMessage(duration));
-            }
-
-            if (!AntiLogout.config.combatLog.combatEndMessage.isBlank()) {
-                this.al$delay(systemTime, () -> {
-                    if (!AntiLogout.config.combatLog.combatEndMessage.isBlank()) {
-                        ((ServerPlayer) this).sendSystemMessage(this.al$getEndCombatMessage(duration));
-                    }
-                });
-            }
+        if (AntiLogout.config.combatLog.notifyOnCombat && !this.al_isInCombat()
+                && !AntiLogout.config.combatLog.combatEnterMessage.isBlank()) {
+            ((ServerPlayer) this).sendSystemMessage(this.al$getStartCombatMessage(duration));
         }
+        this.al_setInCombat(true);
+
+        // Reschedule the exit-combat task; each new hit extends combat and cancels the previous task.
+        this.al$delay(systemTime, () -> {
+            this.al_setInCombat(false);
+            if (AntiLogout.config.combatLog.notifyOnCombat
+                    && !AntiLogout.config.combatLog.combatEndMessage.isBlank()) {
+                ((ServerPlayer) this).sendSystemMessage(this.al$getEndCombatMessage(duration));
+            }
+        });
     }
 
     /**
