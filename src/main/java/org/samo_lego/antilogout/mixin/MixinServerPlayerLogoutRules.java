@@ -42,9 +42,21 @@ public abstract class MixinServerPlayerLogoutRules implements LogoutRules {
     private long taskTime;
     @Unique
     private boolean afkDisconnect = false;
+    @Unique
+    private boolean inCombat = false;
     @Override
     public void al_setAfkDisconnect(boolean afk) {
         this.afkDisconnect = afk;
+    }
+
+    @Override
+    public boolean al_isInCombat() {
+        return this.inCombat;
+    }
+
+    @Override
+    public void al_setInCombat(boolean inCombat) {
+        this.inCombat = inCombat;
     }
 
     @Override
